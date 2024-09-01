@@ -1,11 +1,15 @@
 FROM alpine:latest AS build
 
 ARG VERSION=main
+ARG CHECKSUM
 
-RUN apk add --no-cache git && \
-    mkdir /app && cd /app && \
-    git clone https://github.com/MrDave/StaticJinjaPlus.git . && \
-    git checkout ${VERSION}
+RUN apk add --no-cache tar && \
+    mkdir /app && cd /app  
+COPY sjp_versions.txt /tmp/sjp_versions.txt
+RUN CHECKSUM=$(grep "^$VERSION:" /tmp/sjp_versions.txt | awk -F':' '{print $2}')
+ADD --checksum=${CHECKSUM}  https://github.com/MrDave/StaticJinjaPlus/archive/refs/tags/${VERSION}.tar.gz/ /tmp/sjp.tar.gz
+RUN tar -xzf /tmp/sjp.tar.gz --strip-components=1 -C /app
+
 
 FROM ubuntu:24.04
 
